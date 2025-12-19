@@ -18,6 +18,7 @@
 | Gson | 2.10.1 | JSON处理 |
 | Lombok | - | 代码简化 |
 | Bootstrap | - | 前端框架 |
+| AI模型 | DeepSeek-V3 | 智能学习助手 |
 
 ## 🎯 核心功能
 
@@ -83,58 +84,62 @@ Springboot-StudyEnglish-master/
 
 ### 2. 安装步骤
 
-1. **克隆项目**
-   ```bash
-   git clone <项目地址>
-   cd Springboot-StudyEnglish-master
-   ```
+1. **下载并解压项目**
+   - 下载项目压缩包
+   - 解压到本地目录
 
-2. **导入数据库**
-   ```bash
-   # 登录MySQL
-   mysql -u root -p
-   # 创建数据库
-   CREATE DATABASE study_english;
-   # 使用数据库
-   USE study_english;
-   # 导入脚本
-   source Springboot-StudyEnglish-master/StudyEnglish.sql;
-   ```
+2. **导入IDEA**
+   - 打开IDEA，选择"Open"，找到解压后的项目目录
+   - 等待Maven自动加载依赖
 
-3. **配置数据库连接**
-   编辑 `application.yml` 文件，修改数据库连接信息：
-   ```yaml
-   spring:
-     datasource:
-       url: jdbc:mysql://localhost:3306/study_english?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
-       username: root
-       password: your_password
-   ```
+3. **导入数据库**
+   - 打开SQLyog或其他数据库工具，登录MySQL
+   - 打开项目根目录下的 `StudyEnglish.sql` 文件
+   - 复制所有SQL语句并执行，该脚本会自动创建数据库和表结构
 
-4. **配置AI API**
-   在 `application.yml` 文件中配置API Key：
-   ```yaml
-   gemini:
-     api-key: your_gemini_api_key
-   ```
+4. **配置数据库连接和AI API**
+   - 在IDEA中打开 `src/main/resources/application.yml` 文件
+   - 修改数据库连接信息为自己的MySQL配置：
+     ```yaml
+     spring:
+       datasource:
+         url: jdbc:mysql://localhost:3306/studywords?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+         username: 你的MySQL用户名
+         password: 你的MySQL密码
+     ```
+   - AI API配置（可选，默认已配置）：
+     ```yaml
+     # AI API配置
+     ai:
+       # 使用魔塔社区 DeepSeek 模型
+       provider: siliconflow
+       
+       # 魔塔社区 API 配置
+       siliconflow:
+         api-key: 你的魔塔社区API密钥
+         endpoint: https://api.siliconflow.cn/v1/chat/completions
+         model: deepseek-ai/DeepSeek-V3
+       
+       # Gemini API 配置（兼容原有功能）
+       gemini:
+         api-key: 你的魔塔社区API密钥
+         endpoint: https://api.siliconflow.cn/v1/chat/completions
+     ```
 
 5. **启动项目**
-   - Windows：
-     ```bash
-     .\Springboot-StudyEnglish-master\start.bat
-     ```
-   - Linux：
-     ```bash
-     chmod +x Springboot-StudyEnglish-master/start.sh
-     ./Springboot-StudyEnglish-master/start.sh
-     ```
+   - 在IDEA中找到 `MyspringbootApplication.java` 主类
+   - 右键点击，选择"Run MyspringbootApplication"
+   - 或使用脚本启动：
+     - Windows：双击 `start.bat` 脚本
+     - Linux：执行 `chmod +x start.sh && ./start.sh`
 
 6. **访问项目**
+   打开浏览器，访问以下地址：
    ```
-   # 前端页面
+   # 主页面
    http://localhost:8080
    
-   # AI助手页面
+   # AI学习助手页面
    http://localhost:8080/aigc-assistant
    ```
 
