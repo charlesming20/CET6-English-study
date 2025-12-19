@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI学习助手 </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button[type="submit"],
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        button[type="submit"],
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        button[type="submit"]:hover,
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button[type="submit"]:active,
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 60px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result-content {
+            color: #666;
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 6px;
+            padding: 15px;
+            color: #c33;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            color: #004085;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI学习助手</h1>
+            <p>由AI驱动的智能英文学习工具</p>
+        </div>
+
+        <div class="content">
+            <!-- 功能选项卡 -->
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('chat')">💬 智能对话</button>
+                <button class="tab-btn" onclick="switchTab('word')">📚 词汇详解</button>
+                <button class="tab-btn" onclick="switchTab('sentence')">📝 长难句解析</button>
+                <button class="tab-btn" onclick="switchTab('essay')">✍️ 作文批改</button>
+                <button class="tab-btn" onclick="switchTab('translation')">🌐 翻译练习</button>
+                <button class="tab-btn" onclick="switchTab('learning')">✨ 学习生成</button>
+            </div>
+
+            <!-- 1. 智能对话 -->
+            <div id="chat" class="tab-content active">
+                <div class="info-box">
+                    💡 输入任何问题或话题，AI助手将为您解答
+                </div>
+                <form onsubmit="handleChat(event)">
+                    <div class="form-group">
+                        <label for="chatMessage">您的问题或消息</label>
+                        <textarea id="chatMessage" placeholder="例如：请解释英文中的短语 'piece of cake'" rows="4" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">发送消息</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearChat()">清空</button>
+                    </div>
+                </form>
+
+                <div id="chatLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>AI正在思考中...</p>
+                </div>
+
+                <div id="chatResult" class="result">
+                    <div class="result-title">AI回复：</div>
+                    <div id="chatResponse" class="result-content"></div>
+                </div>
+
+                <div id="chatError" class="error"></div>
+            </div>
+
+            <!-- 2. 词汇详解 -->
+            <div id="word" class="tab-content">
+                <div class="info-box">
+                    📖 输入英文单词，AI将为您提供详细解释、搭配、例句等
+                </div>
+                <form onsubmit="handleWord(event)">
+                    <div class="form-group">
+                        <label for="wordInput">英文单词</label>
+                        <input type="text" id="wordInput" placeholder="例如：serendipity" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">生成详解</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearWord()">清空</button>
+                    </div>
+                </form>
+
+                <div id="wordLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在生成词汇详解...</p>
+                </div>
+
+                <div id="wordResult" class="result">
+                    <div class="result-title" id="wordTitle">词汇详解</div>
+                    <div id="wordResponse" class="result-content"></div>
+                </div>
+
+                <div id="wordError" class="error"></div>
+            </div>
+
+            <!-- 3. 长难句解析 -->
+            <div id="sentence" class="tab-content">
+                <div class="info-box">
+                    📝 输入长难句，AI将为您分析语法结构、成分划分、提供翻译等
+                </div>
+                <form onsubmit="handleSentence(event)">
+                    <div class="form-group">
+                        <label for="sentenceInput">长难句</label>
+                        <textarea id="sentenceInput" placeholder="例如：The book that I bought yesterday is very interesting." rows="4" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">解析句子</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearSentence()">清空</button>
+                    </div>
+                </form>
+
+                <div id="sentenceLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在解析句子...</p>
+                </div>
+
+                <div id="sentenceResult" class="result">
+                    <div class="result-title">句子解析</div>
+                    <div id="sentenceResponse" class="result-content"></div>
+                </div>
+
+                <div id="sentenceError" class="error"></div>
+            </div>
+
+            <!-- 4. 作文批改 -->
+            <div id="essay" class="tab-content">
+                <div class="info-box">
+                    ✍️ 输入作文，AI将为您提供评分、修改建议、亮点分析等
+                </div>
+                <form onsubmit="handleEssay(event)">
+                    <div class="form-group">
+                        <label for="essayInput">作文内容</label>
+                        <textarea id="essayInput" placeholder="请输入您的英文作文..." rows="8" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">批改作文</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearEssay()">清空</button>
+                    </div>
+                </form>
+
+                <div id="essayLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在批改作文...</p>
+                </div>
+
+                <div id="essayResult" class="result">
+                    <div class="result-title">批改结果</div>
+                    <div id="essayResponse" class="result-content"></div>
+                </div>
+
+                <div id="essayError" class="error"></div>
+            </div>
+
+            <!-- 5. 翻译练习 -->
+            <div id="translation" class="tab-content">
+                <div class="info-box">
+                    🌐 输入中文文本，AI将为您生成英文翻译和相关知识点
+                </div>
+                <form onsubmit="handleTranslation(event)">
+                    <div class="form-group">
+                        <label for="translationInput">中文文本</label>
+                        <textarea id="translationInput" placeholder="请输入要翻译的中文文本..." rows="5" required></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">生成翻译</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearTranslation()">清空</button>
+                    </div>
+                </form>
+
+                <div id="translationLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在生成翻译...</p>
+                </div>
+
+                <div id="translationResult" class="result">
+                    <div class="result-title">翻译结果</div>
+                    <div id="translationResponse" class="result-content"></div>
+                </div>
+
+                <div id="translationError" class="error"></div>
+            </div>
+
+            <!-- 6. 学习内容生成 -->
+            <div id="learning" class="tab-content">
+                <div class="info-box">
+                    🎓 输入学习主题，AI将为您生成学习材料
+                </div>
+                <form onsubmit="handleLearning(event)">
+                    <div class="form-group">
+                        <label for="topicInput">学习主题</label>
+                        <input type="text" id="topicInput" placeholder="例如：常用商务英语表达、英文写邮件技巧" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">生成学习内容</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearLearning()">清空</button>
+                    </div>
+                </form>
+
+                <div id="learningLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在生成学习内容...</p>
+                </div>
+
+                <div id="learningResult" class="result">
+                    <div class="result-title" id="learningTitle"></div>
+                    <div id="learningResponse" class="result-content"></div>
+                </div>
+
+                <div id="learningError" class="error"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>✓ 由
+                AI提供支持 | 本工具仅供学习使用 | 建议正确配置API Key以获得最佳体验</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/aigc';
+
+        // 标签页切换
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // 隐藏所有标签按钮的活跃状态
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // 显示选定的标签
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 1. 处理对话
+        function handleChat(e) {
+            e.preventDefault();
+            const message = document.getElementById('chatMessage').value.trim();
+            if (!message) {
+                showError('chatError', '请输入消息');
+                return;
+            }
+
+            sendRequest(
+                `${API_BASE}/chat`,
+                { message },
+                'chatLoading',
+                'chatResult',
+                'chatResponse',
+                'chatError'
+            );
+        }
+
+        // 2. 处理词汇详解
+        function handleWord(e) {
+            e.preventDefault();
+            const word = document.getElementById('wordInput').value.trim();
+            if (!word) {
+                showError('wordError', '请输入单词');
+                return;
+            }
+
+            sendCet6Request(
+                '/cet6/vocab/explanation',
+                { word },
+                'wordLoading',
+                'wordResult',
+                'wordResponse',
+                'wordError'
+            );
+        }
+
+        // 3. 处理长难句解析
+        function handleSentence(e) {
+            e.preventDefault();
+            const sentence = document.getElementById('sentenceInput').value.trim();
+            if (!sentence) {
+                showError('sentenceError', '请输入句子');
+                return;
+            }
+
+            sendCet6Request(
+                '/cet6/sentence/parse',
+                { sentence },
+                'sentenceLoading',
+                'sentenceResult',
+                'sentenceResponse',
+                'sentenceError'
+            );
+        }
+
+        // 4. 处理作文批改
+        function handleEssay(e) {
+            e.preventDefault();
+            const essay = document.getElementById('essayInput').value.trim();
+            if (!essay) {
+                showError('essayError', '请输入作文');
+                return;
+            }
+
+            sendCet6Request(
+                '/cet6/essay/correct',
+                { essay },
+                'essayLoading',
+                'essayResult',
+                'essayResponse',
+                'essayError'
+            );
+        }
+
+        // 5. 处理翻译练习
+        function handleTranslation(e) {
+            e.preventDefault();
+            const chineseText = document.getElementById('translationInput').value.trim();
+            if (!chineseText) {
+                showError('translationError', '请输入中文文本');
+                return;
+            }
+
+            sendCet6Request(
+                '/cet6/translation/generate',
+                { chineseText },
+                'translationLoading',
+                'translationResult',
+                'translationResponse',
+                'translationError'
+            );
+        }
+
+        // 6. 处理学习内容生成
+        function handleLearning(e) {
+            e.preventDefault();
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                showError('learningError', '请输入主题');
+                return;
+            }
+
+            document.getElementById('learningTitle').textContent = `学习内容：${topic}`;
+            sendRequest(
+                `${API_BASE}/generate-learning`,
+                { topic },
+                'learningLoading',
+                'learningResult',
+                'learningResponse',
+                'learningError'
+            );
+        }
+
+        // 通用HTTP请求处理 (AIGC API)
+        function sendRequest(url, data, loadingId, resultId, responseId, errorId) {
+            const loading = document.getElementById(loadingId);
+            const result = document.getElementById(resultId);
+            const error = document.getElementById(errorId);
+
+            // 清空之前的结果和错误
+            error.textContent = '';
+            error.classList.remove('show');
+            result.classList.remove('show');
+
+            // 显示加载状态
+            loading.classList.add('show');
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(json => {
+                    loading.classList.remove('show');
+                    if (json.success) {
+                        const content = json.response || json.explanation || json.content;
+                        document.getElementById(responseId).textContent = content;
+                        result.classList.add('show');
+                    } else {
+                        showError(errorId, json.error || '请求失败');
+                    }
+                })
+                .catch(err => {
+                    loading.classList.remove('show');
+                    showError(errorId, `错误：${err.message}`);
+                });
+        }
+
+        // CET6 API请求处理 (词汇、句子、作文、翻译)
+        function sendCet6Request(url, data, loadingId, resultId, responseId, errorId) {
+            const loading = document.getElementById(loadingId);
+            const result = document.getElementById(resultId);
+            const error = document.getElementById(errorId);
+
+            // 清空之前的结果和错误
+            error.textContent = '';
+            error.classList.remove('show');
+            result.classList.remove('show');
+
+            // 显示加载状态
+            loading.classList.add('show');
+
+            // 转换为 form-urlencoded 格式
+            const formData = new URLSearchParams(data).toString();
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+                .then(res => res.text())
+                .then(data => {
+                    loading.classList.remove('show');
+                    try {
+                        const result_json = JSON.parse(data);
+                        // 检查错误
+                        if (result_json.error) {
+                            showError(errorId, result_json.error);
+                            return;
+                        }
+                        // 检查 OpenAI 格式响应
+                        if (result_json.choices && result_json.choices.length > 0 && result_json.choices[0].message) {
+                            const content = result_json.choices[0].message.content;
+                            document.getElementById(responseId).textContent = content;
+                            result.classList.add('show');
+                        } else {
+                            console.error('响应格式异常:', result_json);
+                            showError(errorId, '生成结果格式异常');
+                        }
+                    } catch (e) {
+                        // JSON解析失败
+                        console.error('JSON解析失败:', e, '原始数据:', data);
+                        if (data.includes('error')) {
+                            showError(errorId, data);
+                        } else {
+                            document.getElementById(responseId).textContent = data;
+                            result.classList.add('show');
+                        }
+                    }
+                })
+                .catch(err => {
+                    loading.classList.remove('show');
+                    showError(errorId, `错误：${err.message}`);
+                });
+        }
+
+        // 显示错误信息
+        function showError(errorId, message) {
+            const error = document.getElementById(errorId);
+            error.textContent = message;
+            error.classList.add('show');
+        }
+
+        // 清空对话
+        function clearChat() {
+            document.getElementById('chatMessage').value = '';
+            document.getElementById('chatResult').classList.remove('show');
+            document.getElementById('chatError').classList.remove('show');
+            document.getElementById('chatLoading').classList.remove('show');
+        }
+
+        // 清空单词解释
+        function clearWord() {
+            document.getElementById('wordInput').value = '';
+            document.getElementById('wordResult').classList.remove('show');
+            document.getElementById('wordError').classList.remove('show');
+            document.getElementById('wordLoading').classList.remove('show');
+        }
+
+        // 清空句子解析
+        function clearSentence() {
+            document.getElementById('sentenceInput').value = '';
+            document.getElementById('sentenceResult').classList.remove('show');
+            document.getElementById('sentenceError').classList.remove('show');
+            document.getElementById('sentenceLoading').classList.remove('show');
+        }
+
+        // 清空作文批改
+        function clearEssay() {
+            document.getElementById('essayInput').value = '';
+            document.getElementById('essayResult').classList.remove('show');
+            document.getElementById('essayError').classList.remove('show');
+            document.getElementById('essayLoading').classList.remove('show');
+        }
+
+        // 清空翻译练习
+        function clearTranslation() {
+            document.getElementById('translationInput').value = '';
+            document.getElementById('translationResult').classList.remove('show');
+            document.getElementById('translationError').classList.remove('show');
+            document.getElementById('translationLoading').classList.remove('show');
+        }
+
+        // 清空学习生成
+        function clearLearning() {
+            document.getElementById('topicInput').value = '';
+            document.getElementById('learningResult').classList.remove('show');
+            document.getElementById('learningError').classList.remove('show');
+            document.getElementById('learningLoading').classList.remove('show');
+        }
+
+        // 页面加载时检查服务状态
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch(`${API_BASE}/health`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('✓ AI服务已就绪:', data.service);
+                })
+                .catch(err => {
+                    console.warn('⚠ AI服务暂不可用，请检查网络和API配置');
+                });
+        });
+    </script>
+</body>
+</html>
